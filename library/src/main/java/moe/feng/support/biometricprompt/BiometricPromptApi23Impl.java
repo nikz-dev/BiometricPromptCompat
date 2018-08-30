@@ -10,10 +10,10 @@ import android.support.annotation.RequiresApi;
 import android.support.annotation.RestrictTo;
 import android.util.Log;
 import android.view.View;
-
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import java.security.Signature;
+
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 @RestrictTo({RestrictTo.Scope.LIBRARY})
@@ -76,6 +76,10 @@ class BiometricPromptApi23Impl implements IBiometricPromptImpl {
             dialog.getNegativeButton().setOnClickListener(v -> {
                 dialog.dismiss();
                 negativeButtonListener.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
+
+                if (cancellationSignal != null && !cancellationSignal.isCanceled()) {
+                    cancellationSignal.cancel();
+                }
             });
         }
     }
@@ -220,6 +224,9 @@ class BiometricPromptApi23Impl implements IBiometricPromptImpl {
             dialog.getFingerprintIcon().setState(FingerprintIconView.State.ERROR);
             animateHandler.sendEmptyMessageDelayed(AnimateHandler.WHAT_RESTORE_NORMAL_STATE, 2000);
             callback.onAuthenticationError(errorCode, errString);
+            if(errorCode == FingerprintManager.FINGERPRINT_ERROR_LOCKOUT){
+                dialog.dismiss();
+            }
         }
 
         @Override
